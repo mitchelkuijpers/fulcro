@@ -9,14 +9,17 @@
 
 (defui ^:once Person
   static om/IQuery
-  (query [this] [:db/id :person/name :person/age-ms :ui/fetch-state])
+  (query [this] [:ui/checked? :db/id :person/name :person/age-ms :ui/fetch-state])
   static om/Ident
   (ident [this props] [:load-samples.person/by-id (:db/id props)])
   Object
   (render [this]
-    (let [{:keys [db/id person/name person/age-ms] :as props} (om/props this)]
+    (let [{:keys [ui/checked? db/id person/name person/age-ms] :as props} (om/props this)]
       (dom/li nil
         (str name " (last queried at " age-ms ")")
+        (dom/input #js {:type    "checkbox"
+                        :onClick #(m/toggle! this :ui/checked?)
+                        :checked (boolean checked?)})
         (dom/button #js {:onClick (fn []
                                     ; Load relative to an ident (of this component).
                                     ; This will refresh the entity in the db. The helper function
@@ -55,6 +58,8 @@
     (let [{:keys [ui/react-key friends enemies]} (om/props this)]
       (dom/div #js {:key react-key}
         (dom/h4 nil "Friends")
+        (dom/button #js {:onClick #(df/load this :load-samples/people Person {:target [:lists/by-type :friends :people]
+                                                                             :params {:kind :friend}})} "Refresh all")
         (ui-people friends)
         (dom/h4 nil "Enemies")
         (ui-people enemies)))))

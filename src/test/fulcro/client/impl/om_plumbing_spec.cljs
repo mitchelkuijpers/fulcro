@@ -8,17 +8,17 @@
     [cljs.test :refer-macros [is are]]))
 
 (specification "Local read can"
-  (let [state  (atom {:top-level    :top-level-value
-                      :union-join   [:panel :a]
-                      :union-join-2 [:dashboard :b]
-                      :join         {:sub-key-1 [:item/by-id 1]
-                                     :sub-key-2 :sub-value-2}
-                      :item/by-id   {1 {:survey/title "Howdy!" :survey/description "More stuff"}}
-                      :settings     {:tags nil}
-                      :dashboard    {:b {:x 2 :y 1 :z [:dashboard :c]}
-                                     :c {:x 3 :y 7 :z [[:dashboard :d]]}
-                                     :d {:x 5 :y 10}}
-                      :panel        {:a {:x 1 :n 4}}})
+  (let [state            (atom {:top-level    :top-level-value
+                                :union-join   [:panel :a]
+                                :union-join-2 [:dashboard :b]
+                                :join         {:sub-key-1 [:item/by-id 1]
+                                               :sub-key-2 :sub-value-2}
+                                :item/by-id   {1 {:survey/title "Howdy!" :survey/description "More stuff"}}
+                                :settings     {:tags nil}
+                                :dashboard    {:b {:x 2 :y 1 :z [:dashboard :c]}
+                                               :c {:x 3 :y 7 :z [[:dashboard :d]]}
+                                               :d {:x 5 :y 10}}
+                                :panel        {:a {:x 1 :n 4}}})
         custom-read      (fn [env k params] (when (= k :custom) {:value 42}))
         parser           (partial (om/parser {:read (partial impl/read-local (constantly false))}) {:state state})
         augmented-parser (partial (om/parser {:read (partial impl/read-local custom-read)}) {:state state})]
@@ -300,7 +300,11 @@
 
       [{:j [:ui/b :c]}]
       {:j {:c 5}}
-      {:j {:c 5}}))
+      {:j {:c 5}}
+
+      [{[:x 1] [:ui/b :c]}]
+      {[:x 1] {:c 5}}
+      {[:x 1] {:c 5}}))
 
   (behavior "mutations!"
     (are [query ?missing-result exp]

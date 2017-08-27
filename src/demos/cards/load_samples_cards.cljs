@@ -25,7 +25,7 @@
                         (df/load app :load-samples/people client/Person {:target [:lists/by-type :friends :people]
                                                                          :params {:kind :friend}})))
   {}
-  {:inspect-data false})
+  {:inspect-data true})
 
 (dc/defcard-doc
   "# Loading Data
