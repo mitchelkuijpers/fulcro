@@ -1,13 +1,20 @@
 (ns fulcro-todomvc.main
   (:require
-    [fulcro-todomvc.ui :as ui]
-    [com.fulcrologic.fulcro.networking.http-remote :as http]
-    [com.fulcrologic.fulcro.application :as app]
-    [com.fulcrologic.fulcro.data-fetch :as df]))
+   [fulcro-todomvc.dynamic-routing-bug :as dynamic-routing-bug]
+   [com.fulcrologic.fulcro.networking.http-remote :as http]
+   [com.fulcrologic.fulcro.routing.dynamic-routing :as dr]
+   [com.fulcrologic.fulcro.application :as app]))
 
-(defonce app (app/fulcro-app {:remotes {:remote (http/fulcro-http-remote {})}}))
+(defonce app (app/fulcro-app {:client-did-mount (fn [app]
+                                                  (dr/change-route app ["a"]))
+                              :remotes {:remote (http/fulcro-http-remote {})}}))
+
+(defn mount []
+  (app/mount! app dynamic-routing-bug/Root "app"))
 
 (defn start []
-  (app/mount! app ui/Root "app")
-  (df/load! app :com.wsscode.pathom/trace nil)
-  (df/load! app [:list/id 1] ui/TodoList))
+  (mount)
+  )
+
+(defn reload []
+  (mount))

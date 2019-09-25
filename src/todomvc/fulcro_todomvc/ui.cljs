@@ -134,6 +134,7 @@
                           items)
         delete-item     (fn [item-id] (comp/transact! this `[(api/todo-delete-item ~{:list-id id :id item-id})]))]
     (dom/div {}
+
       (dom/section :.todoapp {}
         (header this title)
         (when (pos? num-todos)
@@ -183,4 +184,4 @@
   {:initial-state (fn [p] {:root/router (comp/get-initial-state TopRouter {})})
    :query         [{:root/router (comp/get-query TopRouter)}]}
   (dom/div {}
-    (ui-router router)))
+           (ui-router router)))

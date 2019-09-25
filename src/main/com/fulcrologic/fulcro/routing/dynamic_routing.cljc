@@ -243,21 +243,21 @@
 
 (defn fail-handler [env] env)
 
-(defn route-handler [{::uism/keys [event-data] :as env}]
+(defn route-handler [{::uism/keys [event-id event-data] :as env}]
   (let [{:keys [router target error-timeout deferred-timeout path-segment] :or {error-timeout 5000 deferred-timeout 100}} event-data
         immediate? (immediate? target)]
     (-> (if immediate?
           (-> env
-            (uism/store :path-segment path-segment)
-            (uism/apply-action apply-route* event-data)
-            (uism/activate :routed))
+              (uism/store :path-segment path-segment)
+              (uism/apply-action apply-route* event-data)
+              (uism/activate :routed))
           (-> env
-            (uism/store :pending-path-segment path-segment)
-            (uism/apply-action mark-route-pending* event-data)
-            (uism/set-timeout :error-timer :timeout! {} error-timeout #{:ready! :route!})
-            (uism/set-timeout :delay-timer :waiting! {} deferred-timeout #{:ready! :route!})
-            (uism/activate :deferred)))
-      (uism/store :target target))))
+              (uism/store :pending-path-segment path-segment)
+              (uism/apply-action mark-route-pending* event-data)
+              (uism/set-timeout :error-timer :timeout! {} error-timeout #{:ready! :route!})
+              (uism/set-timeout :delay-timer :waiting! {} deferred-timeout #{:ready! :route!})
+              (uism/activate :deferred)))
+        (uism/store :target target))))
 
 (defstatemachine RouterStateMachine
   {::uism/actors
@@ -265,34 +265,34 @@
 
    ::uism/aliases
    {:current-route [:router ::current-route]
-    :state         [:router ::current-state]}
+    :state [:router ::current-state]}
 
    ::uism/states
-   {:initial  {::uism/handler route-handler}
+   {:initial {::uism/handler route-handler}
 
     :deferred {::uism/events
                {:waiting! {::uism/target-state :pending}
-                :route!   {::uism/handler route-handler}
-                :ready!   {::uism/target-state :routed
-                           ::uism/handler      ready-handler}
+                :route! {::uism/handler route-handler}
+                :ready! {::uism/target-state :routed
+                         ::uism/handler ready-handler}
                 :timeout! {::uism/target-state :failed
-                           ::uism/handler      fail-handler}}}
+                           ::uism/handler fail-handler}}}
 
-    :pending  {::uism/events
-               {:waiting! {::uism/target-state :pending}
-                :route!   {::uism/handler route-handler}
-                :ready!   {::uism/target-state :routed
-                           ::uism/handler      ready-handler}
-                :timeout! {::uism/target-state :failed
-                           ::uism/handler      fail-handler}}}
+    :pending {::uism/events
+              {:waiting! {::uism/target-state :pending}
+               :route! {::uism/handler route-handler}
+               :ready! {::uism/target-state :routed
+                        ::uism/handler ready-handler}
+               :timeout! {::uism/target-state :failed
+                          ::uism/handler fail-handler}}}
 
     ;; failed may potentially resolve (just very late), so it must accept ready! events
-    :failed   {::uism/events
-               {:route! {::uism/handler route-handler}
-                :ready! {::uism/target-state :routed
-                         ::uism/handler      ready-handler}}}
+    :failed {::uism/events
+             {:route! {::uism/handler route-handler}
+              :ready! {::uism/target-state :routed
+                       ::uism/handler ready-handler}}}
 
-    :routed   {::uism/handler route-handler}}})
+    :routed {::uism/events {:route! {::uism/handler route-handler}}}}})
 
 ;; TODO: This algorithm is repeated in more than one place in slightly different forms...refactor it.
 (defn proposed-new-path [this-or-app relative-class-or-instance new-route]
